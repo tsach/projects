@@ -1,0 +1,991 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+int puzzle=0;
+int lastind=0;
+int movesarr[10000];
+
+int acheived(int board[][puzzle],int goal[][puzzle])
+{
+  int row,col;
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  if(board[row][col]!=goal[row][col])
+	    return 0;
+	}
+    }
+  return 1;
+}
+
+copy(int oldstate[][puzzle],int newstate[][puzzle])
+{
+  int i,j;
+  for(i=0;i<puzzle;i++)
+    {
+      for(j=0;j<puzzle;j++)
+	{
+	  newstate[i][j]=oldstate[i][j];
+	}
+    }
+}
+
+
+calculatehval(int state[][puzzle],int goal[][puzzle],int heuristicval[],int index,int funchoice,int algochoice)
+{
+
+  int i,j,k,l;
+  int hval=0;
+  /*****************for manhattan heuristic function***********/
+  if(funchoice==1)
+    {
+      for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    {
+	      if(state[i][j]!=0)
+		{
+		  for(k=0;k<puzzle;k++)
+		    {
+		      for(l=0;l<puzzle;l++)
+			{
+			  if(state[i][j]==goal[k][l])
+			    {
+			      int hdiff=l-j;
+			      if(hdiff<0)
+				hdiff=-hdiff;
+			      int vdiff=k-i;
+			      if(vdiff<0)
+				vdiff=-vdiff;
+			      hval+=hdiff+vdiff;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+      heuristicval[index]=hval;
+    }
+
+  /********************for hamming heuristic function***************/
+  else if(funchoice==2)
+    {
+      for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    {
+	      if(state[i][j]!=goal[i][j])
+		{
+		  hval+=1;
+		}
+	    }
+	}
+      heuristicval[index]=hval;
+    }
+    /***************************************************/
+}
+     
+generate_states(int board[][puzzle],int queueforstates[][puzzle][puzzle],int heuristicval[],int goalstate[][puzzle],int index,int parent[][puzzle],int funchoice,int algochoice)
+{
+  int row,col;
+  int rowindex=0,colindex=0;
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  if(board[row][col]==0)
+	    {
+	      rowindex=row;
+	      colindex=col;
+	      break;
+	    }
+	}
+    }
+  int tempstate[puzzle][puzzle];
+  if(rowindex==0 && colindex==0)//top left corner
+    {
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+  else if(rowindex==0 && colindex!=0 && colindex!=puzzle-1)//top row
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+  else if(rowindex==0 && colindex==puzzle-1)//top right corner
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(tempstate,parent))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+   
+  else if(rowindex==puzzle-1 && colindex==0)//bottom left corner
+    {
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+	lastind=index;
+    }
+   
+  else if(rowindex==puzzle-1 && colindex!=0 && colindex!=puzzle-1)//bottom row
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+    
+  else if(rowindex==puzzle-1 && colindex==puzzle-1)//bottom right corner
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+    
+  else if(rowindex!=0 && colindex==0 && rowindex!=puzzle-1)//left col
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+
+  else if(rowindex!=puzzle-1 && colindex==puzzle-1 && rowindex!=0)//right col
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+    
+  else 
+    {
+	 
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex+1];
+      tempstate[rowindex][colindex+1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+	  
+	  
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex-1][colindex];
+      tempstate[rowindex-1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex][colindex-1];
+      tempstate[rowindex][colindex-1]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      
+      
+      copy(board,tempstate);
+      tempstate[rowindex][colindex]=tempstate[rowindex+1][colindex];
+      tempstate[rowindex+1][colindex]=0;
+      if(!acheived(parent,tempstate))
+	{
+	  copy(tempstate,queueforstates[index]);
+	  calculatehval(queueforstates[index],goalstate,heuristicval,index,funchoice,algochoice);
+	  index++;
+	}
+      lastind=index;
+    }
+}
+
+quicksort(int arr[],int point[][puzzle][puzzle],int first,int last)
+{
+  if(first<last)
+    {
+      int i=first,j=last,pivot=first,temp;
+      int temp1[puzzle][puzzle];
+      while(i<j)
+	{
+	  while(arr[i]<=arr[pivot] && i<last)
+	    i++;
+	  while(arr[j]>arr[pivot])
+	    j--;
+	  if(i<j)
+	    {
+	      temp=arr[i];
+	      copy(point[i],temp1);
+	      arr[i]=arr[j];
+	      copy(point[j],point[i]);
+	      arr[j]=temp;
+	      copy(temp1,point[j]);
+	    }
+	}
+      temp=arr[pivot];
+      copy(point[pivot],temp1);
+      arr[pivot]=arr[j];
+      copy(point[j],point[pivot]);
+      arr[j]=temp;
+      copy(temp1,point[j]);
+      quicksort(arr,point,first,j-1);
+      quicksort(arr,point,j+1,last);
+    }	    
+}
+
+/**************************************************************************/
+int hill_climbing(int puzzle)
+{
+  int row,col;
+  int board[puzzle][puzzle];
+  int goalstate[puzzle][puzzle];
+  int queueforstates[10][puzzle][puzzle];
+  int heuristicval[10];
+  int parent[puzzle][puzzle];
+  int iterations=0;
+  
+  int funchoice;
+  printf("Select the heuristic function which you want to use:\n");
+  printf("1.Manhattan priority function(It will simply take add the horizontal and vertical distance of the misplaced tile)\n2.Hamming priority function(It will simply count the number of misplaced tiles)\n");
+  scanf("%d",&funchoice);
+
+
+  copy(board,parent);
+  printf("Enter the initial state of the puzzle\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&board[row][col]);
+	}
+    }
+  printf("Enter the goal state\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) in goal (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&goalstate[row][col]);
+	}
+    }
+  int i,j;
+  
+  for(i=0;i<puzzle;i++)
+    {
+      for(j=0;j<puzzle;j++)
+	printf("\t%d",board[i][j]);
+      printf("\n");
+    }
+  printf("\n****************************************\n");
+      
+  while(!acheived(board,goalstate))
+    {
+      if(iterations<3000)
+	{
+	  generate_states(board,queueforstates,heuristicval,goalstate,0,parent,funchoice,0);
+	  if(lastind==0)
+	    break;
+	  quicksort(heuristicval,queueforstates,0,lastind-1);
+	  copy(board,parent);
+	  copy(queueforstates[0],board);
+	  for(i=0;i<puzzle;i++)
+	    {
+	      for(j=0;j<puzzle;j++)
+		printf("\t%d",board[i][j]);
+	      printf("\n");
+	    }
+	  printf("\n****************************************\n");
+	  iterations++;
+	}
+      else
+	break;
+    }
+  if(iterations>=3000)
+    printf("No possible solution\n");
+}
+
+/**********************************************************************/
+
+
+extendquicksort(int arr[],int point[][puzzle][puzzle],int stateparent[][puzzle][puzzle],int first,int last)
+{
+  if(first<last)
+    {
+      int i=first,j=last,pivot=first,temp;
+      int temp1[puzzle][puzzle];
+      int temp2[puzzle][puzzle];
+      while(i<j)
+	{
+	  while(arr[i]<=arr[pivot] && i<last)
+	    i++;
+	  while(arr[j]>arr[pivot])
+	    j--;
+	  if(i<j)
+	    {
+	      temp=arr[i];
+	      copy(point[i],temp1);
+	      copy(stateparent[i],temp2);
+	      arr[i]=arr[j];
+	      copy(point[j],point[i]);
+	      copy(stateparent[j],stateparent[i]);
+	      arr[j]=temp;
+	      copy(temp1,point[j]);
+	      copy(temp2,stateparent[j]);
+	    }
+	}
+      temp=arr[pivot];
+      copy(point[pivot],temp1);
+      copy(stateparent[pivot],temp2);
+      arr[pivot]=arr[j];
+      copy(point[j],point[pivot]);
+      copy(stateparent[j],stateparent[pivot]);
+      arr[j]=temp;
+      copy(temp1,point[j]);
+      copy(temp2,stateparent[j]);
+      extendquicksort(arr,point,stateparent,first,j-1);
+      extendquicksort(arr,point,stateparent,j+1,last);
+    }	    
+}
+
+bestfirst(int puzzle)
+{
+  int row,col;
+  int startstate[puzzle][puzzle];
+  int board[puzzle][puzzle];
+  int goalstate[puzzle][puzzle];
+  int queueforstates[10][puzzle][puzzle];
+  int heuristicval[10];
+  int parent[puzzle][puzzle];
+
+  int statesqueue[10000][puzzle][puzzle];
+  int stateshval[10000];
+  int stateparent[10000][puzzle][puzzle];
+  int solution[1000][puzzle][puzzle];
+  int closed[10000][puzzle][puzzle];
+  int closedparent[10000][puzzle][puzzle];
+  int iterations=0;
+
+  int funchoice;
+  printf("Select the heuristic function which you want to use:\n");
+  printf("1.Manhattan priority function(It will simply take add the horizontal and vertical distance of the misplaced tile)\n2.Hamming priority function(It will simply count the number of misplaced tiles)\n");
+  scanf("%d",&funchoice);
+
+
+  printf("Enter the initial state of the puzzle\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&board[row][col]);
+	}
+    }
+  printf("Enter the goal state\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) in goal (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&goalstate[row][col]);
+	}
+    }
+  copy(board,startstate);
+  copy(board,statesqueue[0]);
+  int i,j;
+  int k,l;
+  int startind=1;
+  int ecount=0;
+  int tempcount=0;
+  int closedind=0;
+  while(!acheived(board,goalstate))
+    //while(tempcount<6)
+    {
+      //printf("count:%d\n",tempcount);
+      if(iterations<3000)
+	{
+	  generate_states(board,queueforstates,heuristicval,goalstate,0,stateparent[0],funchoice,0);
+	  if(lastind==0)
+	    break;
+	  copy(queueforstates[0],statesqueue[0]);
+	  stateshval[0]=heuristicval[0];
+	  copy(board,stateparent[0]);
+	  for(ecount=1;ecount<lastind;ecount++)
+	    {
+	      copy(queueforstates[ecount],statesqueue[startind]);
+	      stateshval[startind]=heuristicval[ecount];
+	      copy(board,stateparent[startind]);
+	      startind++;
+	}
+	  //quicksort(heuristicval,queueforstates,0,lastind);
+	  /*printf("before sorting\n");
+	    for(i=0;i<puzzle;i++)
+	    {
+	    for(j=0;j<puzzle;j++)
+	    printf("\t%d",board[i][j]);
+	    printf("\n");
+	    }*/
+	  //printf("\n***************************************************\n");
+	  extendquicksort(stateshval,statesqueue,stateparent,0,startind-1);
+	  //for(i=0;i<startind;i++)
+	  //printf("hval:%d\n",stateshval[i]);
+	  //copy(queueforstates[0],board);
+	  copy(stateparent[0],closedparent[closedind]);
+	  copy(statesqueue[0],board);
+	  copy(statesqueue[0],closed[closedind]);
+	  closedind++;
+	  
+	  /* printf("after sorting\n");
+	     int k;
+	     for(k=0;k<startind && k<3;k++)
+	     {
+	     for(i=0;i<puzzle;i++)
+	     {
+	     for(j=0;j<puzzle;j++)
+	     printf("\t%d",statesqueue[k][i][j]);
+	     printf("\n");
+	     }
+	     printf("heuristic:%d",stateshval[k]);
+	     printf("\n***************************************************\n");
+	     }
+	     printf("adding to the closed list:\n");
+	     for(i=0;i<puzzle;i++)
+	     {
+	     for(j=0;j<puzzle;j++)
+	    printf("\t%d",closed[closedind-1][i][j]);
+	    printf("\n");
+	    }
+	    printf("with parent \n");
+	    for(i=0;i<puzzle;i++)
+	    {
+	    for(j=0;j<puzzle;j++)
+	    printf("\t%d",closedparent[closedind-1][i][j]);
+	    printf("\n");
+	    }
+	    //printf("heuristic:%d",stateshval[k]);
+	    printf("\n***************************************************\n");*/
+	  iterations++;
+	}
+      else
+	break;
+    }
+  if(iterations>=3000)
+    {
+      printf("No possible solution exist\n");
+      return;
+    }
+  
+  //  printf("Printing path:****************************************\n");
+  int currentstate[puzzle][puzzle];
+  int pindex=0;
+  int scount=0;
+  copy(goalstate,currentstate);
+  copy(goalstate,solution[scount]);
+  scount++;
+  /*for(i=0;i<puzzle;i++)
+    {
+      for(j=0;j<puzzle;j++)
+	printf("\t%d",currentstate[i][j]);
+      printf("\n");
+    }
+    printf("\n****************************************\n");*/
+  pindex=closedind-1;
+  while(!acheived(currentstate,startstate))
+    {
+      copy(closedparent[pindex],currentstate);
+      copy(closedparent[pindex],solution[scount]);
+      scount++;
+      /*for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    printf("\t%d",currentstate[i][j]);
+	  printf("\n");
+	}
+	printf("\n****************************************\n");*/
+      for(i=0;i<1000;i++)
+	{
+	  if(acheived(closed[i],currentstate))
+	    {
+	      pindex=i;
+	      break;
+	    }
+	}
+    }
+  
+  scount-=1;
+  for(;scount>=0;scount--)
+    {
+      for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    printf("\t%d",solution[scount][i][j]);
+	  printf("\n");
+	}
+      printf("\n****************************************\n");
+    }
+}
+
+/*********************************************************************/
+extendedquicksort(int arr[],int point[][puzzle][puzzle],int stateparent[][puzzle][puzzle],int movearr[],int first,int last)
+{
+  if(first<last)
+    {
+      int i=first,j=last,pivot=first,temp,temp3;
+      int temp1[puzzle][puzzle];
+      int temp2[puzzle][puzzle];
+      while(i<j)
+	{
+	  while(arr[i]<=arr[pivot] && i<last)
+	    i++;
+	  while(arr[j]>arr[pivot])
+	    j--;
+	  if(i<j)
+	    {
+	      temp=arr[i];
+	      temp3=movearr[i];
+	      copy(point[i],temp1);
+	      copy(stateparent[i],temp2);
+	      arr[i]=arr[j];
+	      movearr[i]=movearr[j];
+	      copy(point[j],point[i]);
+	      copy(stateparent[j],stateparent[i]);
+	      arr[j]=temp;
+	      movearr[j]=temp3;
+	      copy(temp1,point[j]);
+	      copy(temp2,stateparent[j]);
+	    }
+	}
+      temp=arr[pivot];
+      temp3=movearr[pivot];
+      copy(point[pivot],temp1);
+      copy(stateparent[pivot],temp2);
+      arr[pivot]=arr[j];
+      movearr[pivot]=movearr[j];
+      copy(point[j],point[pivot]);
+      copy(stateparent[j],stateparent[pivot]);
+      arr[j]=temp;
+      movearr[j]=temp3;
+      copy(temp1,point[j]);
+      copy(temp2,stateparent[j]);
+      extendedquicksort(arr,point,stateparent,movearr,first,j-1);
+      extendedquicksort(arr,point,stateparent,movearr,j+1,last);
+    }	    
+}
+
+astar(int puzzle)
+{
+  int row,col;
+  int startstate[puzzle][puzzle];
+  int board[puzzle][puzzle];
+  int goalstate[puzzle][puzzle];
+  int queueforstates[10][puzzle][puzzle];
+  int heuristicval[10];
+  int parent[puzzle][puzzle];
+
+  int statesqueue[10000][puzzle][puzzle];
+  int stateshval[10000];
+  int stateparent[10000][puzzle][puzzle];
+  int solution[1000][puzzle][puzzle];
+  int closed[10000][puzzle][puzzle];
+  int closedparent[10000][puzzle][puzzle];
+  int iterations=0;
+
+  int funchoice;
+  printf("Select the heuristic function which you want to use:\n");
+  printf("1.Manhattan priority function(It will simply take add the horizontal and vertical distance of the misplaced tile)\n2.Hamming priority function(It will simply count the number of misplaced tiles)\n");
+  scanf("%d",&funchoice);
+
+  printf("Enter the initial state of the puzzle\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&board[row][col]);
+	}
+    }
+  printf("Enter the goal state\n");
+  for(row=0;row<puzzle;row++)
+    {
+      for(col=0;col<puzzle;col++)
+	{
+	  printf("Enter the tile no. at position (%d,%d) in goal (for empty tile enter 0)\n",row+1,col+1);
+	  scanf("%d",&goalstate[row][col]);
+	}
+    }
+  copy(board,startstate);
+  copy(board,statesqueue[0]);
+  int i,j;
+  int k,l;
+  int startind=1;
+  int ecount=0;
+  int tempcount=0;
+  int closedind=0;
+  for(k=0;k<10000;k++)
+    movesarr[k]=0;
+  int moves=0;
+  while(!acheived(board,goalstate))
+    //while(tempcount<6)
+    {
+      if(iterations<3000)
+	{
+	  //printf("count:%d\n",tempcount);
+	  generate_states(board,queueforstates,heuristicval,goalstate,0,stateparent[0],funchoice,0);
+	  if(lastind==0)
+	    break;
+	  copy(queueforstates[0],statesqueue[0]);
+	  stateshval[0]=heuristicval[0];
+	  copy(board,stateparent[0]);
+	  movesarr[0]=moves+1;
+	  for(ecount=1;ecount<lastind;ecount++)
+	    {
+	      movesarr[startind]=moves+1;
+	      copy(queueforstates[ecount],statesqueue[startind]);
+	      stateshval[startind]=heuristicval[ecount];
+	      stateshval[startind]=movesarr[startind];
+	      copy(board,stateparent[startind]);
+	      startind++;
+	    }
+	  //quicksort(heuristicval,queueforstates,0,lastind);
+	  /*printf("before sorting\n");
+	    for(i=0;i<puzzle;i++)
+	    {
+	    for(j=0;j<puzzle;j++)
+	    printf("\t%d",board[i][j]);
+	    printf("\n");
+	    }*/
+	  //printf("\n***************************************************\n");
+	  extendedquicksort(stateshval,statesqueue,stateparent,movesarr,0,startind-1);
+	  //for(i=0;i<startind;i++)
+	  //printf("hval:%d\n",stateshval[i]);
+	  //copy(queueforstates[0],board);
+	  copy(stateparent[0],closedparent[closedind]);
+	  copy(statesqueue[0],board);
+	  moves=movesarr[0];
+	  copy(statesqueue[0],closed[closedind]);
+	  closedind++;
+	  
+	  /* printf("after sorting\n");
+	     int k;
+	     for(k=0;k<startind && k<3;k++)
+	     {
+	     for(i=0;i<puzzle;i++)
+	     {
+	     for(j=0;j<puzzle;j++)
+	     printf("\t%d",statesqueue[k][i][j]);
+	     printf("\n");
+	     }
+	     printf("heuristic:%d",stateshval[k]);
+	     printf("\n***************************************************\n");
+	     }
+	     printf("adding to the closed list:\n");
+	     for(i=0;i<puzzle;i++)
+	     {
+	     for(j=0;j<puzzle;j++)
+	     printf("\t%d",closed[closedind-1][i][j]);
+	     printf("\n");
+	     }
+	     printf("with parent \n");
+	     for(i=0;i<puzzle;i++)
+	     {
+	     for(j=0;j<puzzle;j++)
+	     printf("\t%d",closedparent[closedind-1][i][j]);
+	     printf("\n");
+	     }
+	     //printf("heuristic:%d",stateshval[k]);
+	     printf("\n***************************************************\n");*/
+	  // moves+=1;
+	  //tempcount++;
+	  iterations++;
+	}
+      else
+	break;
+    }
+  if(iterations>=3000)
+    {
+      printf("No possible solution\n");
+      return;
+    }
+  
+  //  printf("Printing path:****************************************\n");
+  int currentstate[puzzle][puzzle];
+  int pindex=0;
+  int scount=0;
+  copy(goalstate,currentstate);
+  copy(goalstate,solution[scount]);
+  scount++;
+  /*for(i=0;i<puzzle;i++)
+    {
+      for(j=0;j<puzzle;j++)
+	printf("\t%d",currentstate[i][j]);
+      printf("\n");
+    }
+    printf("\n****************************************\n");*/
+  pindex=closedind-1;
+  while(!acheived(currentstate,startstate))
+    {
+      copy(closedparent[pindex],currentstate);
+      copy(closedparent[pindex],solution[scount]);
+      scount++;
+      /*for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    printf("\t%d",currentstate[i][j]);
+	  printf("\n");
+	}
+	printf("\n****************************************\n");*/
+      for(i=0;i<1000;i++)
+	{
+	  if(acheived(closed[i],currentstate))
+	    {
+	      pindex=i;
+	      break;
+	    }
+	}
+    }
+  
+  scount-=1;
+  for(;scount>=0;scount--)
+    {
+      for(i=0;i<puzzle;i++)
+	{
+	  for(j=0;j<puzzle;j++)
+	    printf("\t%d",solution[scount][i][j]);
+	  printf("\n");
+	}
+      printf("\n****************************************\n");
+    }
+}
+
+
+/*********************************************************************/
+main()
+{
+  int value;
+  printf("Enter the puzzle type (8 block, 15 block, 24,block)\n");
+  scanf("%d",&value);
+  if(value==8)
+    puzzle=3;
+  else if(value=15)
+    puzzle=4;
+  else
+    puzzle=5;
+  int choice=0;
+  printf("Enter the choice for algorithm:\n");
+  printf("1.HillClimbing\n2.BestFirst\n3.A* algorithm\n");
+  scanf("%d",&choice);
+  switch(choice)
+    {
+    case 1:
+      hill_climbing(puzzle);
+      break;
+    case 2:
+      bestfirst(puzzle);
+      break;
+    case 3:
+      astar(puzzle);
+      break;
+    default:
+      printf("Invalid Choice\n");
+      exit(0);
+    }
+}

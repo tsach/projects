@@ -1,0 +1,7 @@
+I have provided a input file with name input.txt
+the input format of the file is as foallows:
+1.(Enter the type of puzzle 8/15/24) 15
+2.(Enter the algorithm which you want to use 1.Hill Climbing/2.Best First/3.A*) 1
+3.(Enter the choice for heuristic function manhattan/hamming) 2
+4.(Initial state of the board)
+5.(Goal state of the board)
