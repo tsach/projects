@@ -1,0 +1,11 @@
+I have provided various input files
+the input format of the file is as follows:
+1.Mention whether it is euclidean or not.
+2.Enter the number of cities.
+3.Coordinates of the cities.
+4.Matrix specifying the distance between the cities.
+
+how to run:
+./tsp < input_euc
+
+If you want to amke any changes to the input you can enter the input in the file or you can enter the input when program prompts for input.

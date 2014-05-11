@@ -1,0 +1,12 @@
+I have provided a input file with name input.txt
+the input format of the file is as foallows:
+1.(Enter the type of puzzle 8/15/24) 15
+2.(Enter the algorithm which you want to use 1.Hill Climbing/2.Best First/3.A*) 1
+3.(Enter the choice for heuristic function manhattan/hamming) 2
+4.(Initial state of the board)
+5.(Goal state of the board)
+
+how to run:
+./AI_assignment < input.txt
+
+If you want to amke any changes to the input you can enter rhe input in the file or you can enter the input when program prompts for input.
